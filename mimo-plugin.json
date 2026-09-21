@@ -2,7 +2,7 @@
   "id": "openviking-memory",
   "name": "OpenViking Memory",
   "icon": "🧠",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "bendit",
   "summary": "OpenViking 长期语义记忆：回答前自动召回、回答后自动沉淀，并把 OV 全套工具暴露为 MiMo 原生工具。",
   "homepage": "https://github.com/BENDIT233/openviking-mimo-plugin",

@@ -5,7 +5,7 @@
 把 [OpenViking](https://github.com/volcengine/OpenViking)（OV）长期语义记忆接入
 **小米 MiMo 桌面端**（MiMoCode 引擎，进程内 ESM 插件）。
 
-![version](https://img.shields.io/badge/version-0.1.0-blue)
+![version](https://img.shields.io/badge/version-0.1.1-blue)
 ![host](https://img.shields.io/badge/host-Xiaomi_MiMo-orange)
 ![plugin](https://img.shields.io/badge/plugin-@mimo--ai%2Fplugin_0.1.14-8A2BE2)
 ![tools](https://img.shields.io/badge/tools-native_ov__*,_no_MCP_SDK-1f6feb)
@@ -239,7 +239,7 @@ MiMo 插件是**进程内**模块，因此环境变量是真正透传的
 | OV 会话 id | `mimo-<MiMo sessionID>`（`deriveAgentSessionId("mimo-", input)`） |
 | hook 状态 | `~/.openviking/hook-state/mimo/<sessionID>.json` |
 | 调试日志 | `~/.openviking/logs/mimo-hooks.log` |
-| User-Agent | `openviking-memory-mimo/0.1.0` |
+| User-Agent | `openviking-memory-mimo/0.1.1` |
 
 `mimo-` 前缀 + 把 `{sessionId}` 传进 `recallForPrompt` 是 **OV 的硬要求**，
 不是可选优化：服务端据此开启查询扩展与跨轮去重账本。
@@ -370,6 +370,7 @@ ELECTRON_RUN_AS_NODE=1 "C:/Program Files/Xiaomi MiMo/Xiaomi MiMo.exe" \
 
 | 版本 | 日期 | 说明 |
 | --- | --- | --- |
+| 0.1.1 | 2026-09-22 | 测试隔离修复：`test/verify.mjs` 用进程内 `MIMOCODE_HOME` 把引擎钉在临时 home，不再扫到本机真实全局配置目录（插件已全局在役后曾致工具重复注册 30/15，属测试环境假象）；顺带修掉 DB 句柄未关导致的清理失败 |
 | 0.1.0 | 2026-09-21 | 首版：画像注入 + 语义召回 + URI 守卫 + trajectory 捕获提交 + 15 个原生工具 + skill；本机 115/115 实证通过 |
 
 ## 致谢

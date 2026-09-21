@@ -8,6 +8,13 @@
  * `~/.config/mimocode`, `~/.config/mimocode/mimocode.jsonc`, or anything under
  * `~/.openviking` except the hook-state/log files the plugin writes by design.
  *
+ * The boot is hermetic: `MIMOCODE_HOME` is pointed at the throwaway workspace
+ * *in-process, before the engine is imported*. The engine's config-dir list is
+ * always `[Path.config, …, MIMOCODE_CONFIG_DIR]`, and `Path.config` follows
+ * `MIMOCODE_HOME` — so without it the machine's real global config dir is
+ * scanned too, and an installed copy of this plugin registers every native
+ * `ov_*` tool a second time. See `bootEngine` for the details.
+ *
  * Why the mock recorder matters: recall injection is only proven when the
  * marker appears in the *request body the model actually received*. A hook can
  * log "injected" while the engine drops the part; asserting against the HTTP
@@ -140,8 +147,21 @@ async function makeConfigDir(base, { includePlugin, mockBaseUrl }) {
   return dir;
 }
 
-async function bootEngine(configDir) {
-  // The engine reads its config dir from the environment at import time.
+async function bootEngine(configDir, home) {
+  // Hermetic boot. The engine's config-dir list is always
+  //   [Path.config, .mimocode-up-from-cwd, .mimocode-up-from-Path.home, MIMOCODE_CONFIG_DIR]
+  // and `Path.config` resolves to `<MIMOCODE_HOME>/config` when MIMOCODE_HOME is
+  // set, else to `~/.config/mimocode`. Setting only MIMOCODE_CONFIG_DIR therefore
+  // leaves the machine's real global config dir in the list: once this plugin is
+  // installed for real there, the same plugin loads from two directories and
+  // every native `ov_*` tool registers twice (30 ids instead of 15).
+  //
+  // Both vars must be set IN-PROCESS, BEFORE the engine is imported — the engine
+  // resolves these paths at module-init time, so a spawning shell or a later
+  // assignment has no effect. `home` is the throwaway parent of `configDir`, and
+  // is also where the engine keeps its data/cache/state/log, so a run cannot
+  // read or write any of the user's real MiMoCode dirs.
+  process.env.MIMOCODE_HOME = home;
   process.env.MIMOCODE_CONFIG_DIR = configDir;
   process.env.MIMOCODE_DISABLE_PROJECT_CONFIG = "1";
   // The engine writes runtime state (`.mimocode/.cron-lock`, gitignore) into its
@@ -155,7 +175,7 @@ async function bootEngine(configDir) {
     hostname: "127.0.0.1",
     cors: ["app://-"],
   });
-  return { handle, base: String(handle.url).replace(/\/$/, "") };
+  return { handle, mod, base: String(handle.url).replace(/\/$/, "") };
 }
 
 async function postJSON(base, path, body) {
@@ -339,7 +359,9 @@ async function main() {
   const cfgDir = await makeConfigDir(base, { includePlugin: true, mockBaseUrl });
   await writeObserverPlugin(cfgDir);
   const ovRecorder = installOvRecorder("ov.example.com");
-  const { handle, base: engineBase } = await bootEngine(cfgDir);
+  // `base` is the throwaway workspace and `cfgDir` is `<base>/config`, so making
+  // it MIMOCODE_HOME pins the engine's global config dir to the test copy.
+  const { handle, mod: engineMod, base: engineBase } = await bootEngine(cfgDir, base);
   process.stdout.write(`engine:          ${engineBase}\n`);
 
   try {
@@ -1229,6 +1251,12 @@ async function main() {
     try { await handle.stop?.(); } catch { /* the engine may already be down */ }
     ovRecorder.restore();
     await mock.close();
+    // Close the engine's SQLite handle before deleting the tree. With
+    // MIMOCODE_HOME set, `<home>/data/mimocode.db` lives inside `base`, and
+    // Windows refuses to unlink a file another handle still has open (EBUSY).
+    // Before this harness was hermetic that DB sat in the user's real
+    // ~/.local/share/mimocode, so the lock was invisible here.
+    try { engineMod.Database?.close?.(); } catch { /* already closed */ }
     // Step out of the tree before deleting it: the cwd was moved into the temp
     // config dir for the engine's sake, and Windows refuses to remove a
     // directory that is any process's working directory (EBUSY).
@@ -1239,7 +1267,20 @@ async function main() {
       // user's real ~/.config/mimocode/node_modules — a link is cheap insurance.
       const modules = join(base, "config", "node_modules");
       try { await rm(modules, { recursive: false, force: true }); } catch { /* not a link */ }
-      await rm(base, { recursive: true, force: true });
+      // The engine's background workers can hold the DB for a moment after
+      // close(); retry briefly rather than failing the whole run over cleanup.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          await rm(base, { recursive: true, force: true });
+          break;
+        } catch (error) {
+          if (attempt === 4) {
+            process.stderr.write(`warning: could not remove ${base}: ${error?.code || error?.message}\n`);
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 400));
+        }
+      }
     } else {
       process.stdout.write(`\nkept: ${base}\n`);
     }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "openviking-memory",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "client": "mimo",
   "installMode": "managed-native",
   "source": "dev",
@@ -16,7 +16,7 @@
     "sessionPrefix": "mimo-",
     "hookStateDir": "~/.openviking/hook-state/mimo",
     "debugLog": "~/.openviking/logs/mimo-hooks.log",
-    "userAgent": "openviking-memory-mimo/0.1.0",
+    "userAgent": "openviking-memory-mimo/0.1.1",
     "host": "Xiaomi MiMo desktop (MiMoCode engine)",
     "hostPluginEntry": "~/.config/mimocode/plugin/openviking.js",
     "hostConfigKey": "plugin",
