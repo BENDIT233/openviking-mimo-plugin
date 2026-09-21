@@ -1,0 +1,4 @@
+{
+  "displayName": "OpenViking 长期记忆",
+  "brief": "接入 OpenViking 语义记忆：回答前自动召回相关记忆，回答后自动沉淀对话。"
+}

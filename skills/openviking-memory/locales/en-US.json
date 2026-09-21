@@ -1,0 +1,4 @@
+{
+  "displayName": "OpenViking Memory",
+  "brief": "Long-term semantic memory backed by OpenViking: recalls relevant memories before every answer and stores each turn afterwards."
+}

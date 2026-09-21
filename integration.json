@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "openviking-memory",
+  "version": "0.1.0",
+  "client": "mimo",
+  "installMode": "managed-native",
+  "source": "dev",
+  "capabilities": ["hooks", "mcp", "tools", "skills"],
+  "hooksConfig": "./plugin/openviking.js",
+  "mcpConfig": "./plugin/ov-tools.schema.json",
+  "installedAt": "2026-09-21T00:00:00.000Z",
+  "updatedAt": "2026-09-21T00:00:00.000Z",
+
+  "provenance": {
+    "$comment": "Keys below are this port's own provenance notes. The eleven fields above are the OpenViking official integration record exactly as .../memory-plugin-shared/lib/install/host-json-config.mjs emits them; nothing here is part of that contract.",
+    "sessionPrefix": "mimo-",
+    "hookStateDir": "~/.openviking/hook-state/mimo",
+    "debugLog": "~/.openviking/logs/mimo-hooks.log",
+    "userAgent": "openviking-memory-mimo/0.1.0",
+    "host": "Xiaomi MiMo desktop (MiMoCode engine)",
+    "hostPluginEntry": "~/.config/mimocode/plugin/openviking.js",
+    "hostConfigKey": "plugin",
+    "transport": "in-process ESM; OV tool calls go over fetch to POST <baseUrl>/mcp (JSON-RPC 2.0, streamable HTTP)"
+  },
+  "sourceRepository": "https://github.com/BENDIT233/openviking-mimo-plugin",
+  "status": "active"
+}

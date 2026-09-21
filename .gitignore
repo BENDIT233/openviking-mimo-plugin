@@ -1,0 +1,14 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Logs and local state
+*.log
+.node_repl_history
+
+# Local scratch used when running a module directly from the repo root
+# (the plugin resolves @mimo-ai/plugin and zod from a node_modules beside it).
+.tmp-test/
