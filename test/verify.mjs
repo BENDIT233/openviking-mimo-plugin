@@ -358,7 +358,12 @@ async function main() {
 
   const cfgDir = await makeConfigDir(base, { includePlugin: true, mockBaseUrl });
   await writeObserverPlugin(cfgDir);
-  const ovRecorder = installOvRecorder("ov.example.com");
+  // Host comes from resolved credentials, not a hardcoded personal domain.
+  const ovHost = (() => {
+    try { return new URL(resolveOpenVikingCredentials().mcpUrl).host; }
+    catch { return "ov.example.com"; }
+  })();
+  const ovRecorder = installOvRecorder(ovHost);
   // `base` is the throwaway workspace and `cfgDir` is `<base>/config`, so making
   // it MIMOCODE_HOME pins the engine's global config dir to the test copy.
   const { handle, mod: engineMod, base: engineBase } = await bootEngine(cfgDir, base);
